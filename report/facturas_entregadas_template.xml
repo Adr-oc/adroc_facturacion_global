@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_facturas_entregadas">
+        <t t-call="web.html_container">
+            <t t-foreach="partners_data" t-as="pdata">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <!-- Header Title -->
+                        <div class="text-center" style="margin-bottom: 20px;">
+                            <h2 style="color: #2c5282; font-weight: bold;">
+                                DETALLE DE FACTURAS ENTREGADAS
+                            </h2>
+                        </div>
+
+                        <!-- Partner Name -->
+                        <div style="margin-bottom: 15px;">
+                            <h4 style="color: #c6a700; font-weight: bold;">
+                                <t t-esc="pdata['partner'].name"/>
+                            </h4>
+                        </div>
+
+                        <!-- Main Table -->
+                        <t t-set="row_number" t-value="0"/>
+
+                        <t t-foreach="pdata['groups']" t-as="group">
+                            <table class="table table-sm table-bordered" style="font-size: 11px; margin-bottom: 20px;">
+                                <thead>
+                                    <tr style="background-color: #f8f9fa;">
+                                        <th style="width: 4%;">NO.</th>
+                                        <th style="width: 10%;">Fecha de Envio</th>
+                                        <th style="width: 10%;">Fecha</th>
+                                        <th style="width: 12%;">Numero FEL</th>
+                                        <th style="width: 14%;">Numero</th>
+                                        <th style="width: 8%;">Moneda</th>
+                                        <th style="width: 10%; text-align: right;">Total</th>
+                                        <th style="width: 14%;">Referencia 1</th>
+                                        <th style="width: 14%;">Referencia 2</th>
+                                        <th style="width: 14%;">Embarque</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-foreach="group['invoices']" t-as="invoice">
+                                        <t t-set="row_number" t-value="row_number + 1"/>
+                                        <tr>
+                                            <td><t t-esc="row_number"/></td>
+                                            <td><t t-esc="invoice.date_sent" t-options='{"widget": "date"}'/></td>
+                                            <td><t t-esc="invoice.invoice_date" t-options='{"widget": "date"}'/></td>
+                                            <td><t t-esc="invoice.x_studio_nmero_de_dte or ''"/></td>
+                                            <td><t t-esc="invoice.name"/></td>
+                                            <td><t t-esc="invoice.currency_id.name"/></td>
+                                            <td style="text-align: right;">
+                                                <t t-esc="invoice.amount_total" t-options='{"widget": "float", "precision": 2}'/>
+                                            </td>
+                                            <td><t t-esc="invoice.mrdc_shipment_ref_1 or ''"/></td>
+                                            <td><t t-esc="invoice.mrdc_shipment_ref_2 or ''"/></td>
+                                            <td><t t-esc="invoice.mrdc_shipment_id.name or ''"/></td>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                            </table>
+                        </t>
+
+                        <!-- Totals Row -->
+                        <table class="table table-sm table-bordered" style="font-size: 11px;">
+                            <tbody>
+                                <tr style="background-color: #f8f9fa; font-weight: bold;">
+                                    <td style="width: 40%;"></td>
+                                    <td style="width: 15%;">Cuenta Ajena</td>
+                                    <td style="width: 10%; text-align: right;">
+                                        <t t-esc="pdata['totals']['cuenta_ajena']" t-options='{"widget": "float", "precision": 2}'/>
+                                    </td>
+                                    <td style="width: 10%;">Honorarios</td>
+                                    <td style="width: 10%; text-align: right;">
+                                        <t t-esc="pdata['totals']['honorarios']" t-options='{"widget": "float", "precision": 2}'/>
+                                    </td>
+                                    <td style="width: 7%;">TOTAL</td>
+                                    <td style="width: 8%; text-align: right;">
+                                        <t t-esc="pdata['totals']['total']" t-options='{"widget": "float", "precision": 2}'/>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <!-- Delivery Address -->
+                        <div style="margin-top: 20px;">
+                            <p>
+                                <strong>Direccion Entrega:</strong>
+                                <t t-esc="pdata['partner'].name"/>
+                                <t t-if="pdata['partner'].street">
+                                    <t t-esc="pdata['partner'].street"/>
+                                </t>
+                                <t t-if="pdata['partner'].street2">
+                                    , <t t-esc="pdata['partner'].street2"/>
+                                </t>
+                                <t t-if="pdata['partner'].city">
+                                    , <t t-esc="pdata['partner'].city"/>
+                                </t>
+                                <t t-if="pdata['partner'].state_id">
+                                    <t t-esc="pdata['partner'].state_id.name"/>
+                                </t>
+                                <t t-if="pdata['partner'].country_id">
+                                    <t t-esc="pdata['partner'].country_id.name"/>
+                                </t>
+                            </p>
+                        </div>
+
+                        <!-- Signature -->
+                        <div style="margin-top: 40px;">
+                            <p>
+                                <strong>Firma quien recibe:</strong>
+                                ___________________________________________
+                            </p>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

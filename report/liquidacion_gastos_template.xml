@@ -1,0 +1,277 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_liquidacion_gastos">
+        <t t-call="web.html_container">
+            <t t-call="web.basic_layout">
+                <div class="page" style="font-family: Arial, sans-serif; font-size: 11px;">
+
+                    <!-- HEADER -->
+                    <div class="text-center" style="margin-bottom: 20px;">
+                        <h3 style="font-weight: bold; margin-bottom: 5px;">
+                            <t t-foreach="companies_data" t-as="cdata">
+                                <t t-esc="cdata['company'].name"/><t t-if="not cdata_last"> - </t>
+                            </t>
+                        </h3>
+                        <h4 style="font-weight: bold; margin-bottom: 5px;">
+                            LIQUIDACION DE GASTOS DE IMPORTACION
+                        </h4>
+                        <h5 style="font-weight: bold;">
+                            Referencia. <t t-esc="shipment.name"/>
+                        </h5>
+                    </div>
+
+                    <!-- INFO BOX WITH LOGOS -->
+                    <div style="display: flex; margin-bottom: 20px;">
+                        <!-- Logos Column -->
+                        <div style="width: 25%; padding-right: 15px;">
+                            <t t-foreach="companies_data" t-as="cdata">
+                                <div style="margin-bottom: 10px;">
+                                    <img t-if="cdata['company'].logo"
+                                         t-att-src="image_data_uri(cdata['company'].logo)"
+                                         style="max-height: 60px; max-width: 150px;"
+                                         alt="Logo"/>
+                                    <div t-else="" style="font-weight: bold; color: #006666;">
+                                        <t t-esc="cdata['company'].name"/>
+                                    </div>
+                                </div>
+                            </t>
+                        </div>
+
+                        <!-- Info Column -->
+                        <div style="width: 75%;">
+                            <table style="width: 100%;">
+                                <tr>
+                                    <td style="width: 40%; text-align: right; padding-right: 10px; font-weight: bold;">
+                                        Lugar y Fecha:
+                                    </td>
+                                    <td style="border-bottom: 1px solid #000;">
+                                        Guatemala, <t t-esc="today" t-options='{"widget": "date"}'/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align: right; padding-right: 10px; font-weight: bold;">
+                                        Cliente:
+                                    </td>
+                                    <td style="border-bottom: 1px solid #000;">
+                                        <t t-esc="shipment.partner_id.name"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align: right; padding-right: 10px; font-weight: bold;">
+                                        Números de Declaraciones:
+                                    </td>
+                                    <td style="border-bottom: 1px solid #000;">
+                                        <t t-esc="shipment.customs_declaration_number or ''"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align: right; padding-right: 10px; font-weight: bold;">
+                                        Naviera:
+                                    </td>
+                                    <td style="border-bottom: 1px solid #000;">
+                                        <t t-esc="shipment.carrier_id.name if shipment.carrier_id else ''"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align: right; padding-right: 10px; font-weight: bold;">
+                                        Facturas UCC No.:
+                                    </td>
+                                    <td style="border-bottom: 1px solid #000;">
+                                        <!-- Campo pendiente por definir -->
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align: right; padding-right: 10px; font-weight: bold;">
+                                        Tipos de Productos:
+                                    </td>
+                                    <td style="border-bottom: 1px solid #000;">
+                                        <!-- Campo pendiente por definir -->
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- LISTADO POR EMPRESA -->
+                    <t t-foreach="companies_data" t-as="cdata">
+                        <div style="margin-top: 25px;">
+                            <!-- Título de sección -->
+                            <h4 class="text-center" style="font-weight: bold; margin-bottom: 10px;">
+                                LISTADO DE FACTURAS <t t-esc="cdata['company'].name"/>
+                            </h4>
+
+                            <!-- Subtítulo empresa -->
+                            <div style="font-weight: bold; margin-bottom: 10px;">
+                                <t t-esc="cdata['company'].name"/>
+                            </div>
+
+                            <!-- Tabla de facturas -->
+                            <table class="table table-sm table-bordered" style="font-size: 10px;">
+                                <thead>
+                                    <tr style="background-color: #f0f0f0;">
+                                        <th style="width: 8%;">Fecha de Envío</th>
+                                        <th style="width: 8%;">Fecha</th>
+                                        <th style="width: 20%;">Nombre del socio a mostrar en la factura.</th>
+                                        <th style="width: 10%;">Numero FEL</th>
+                                        <th style="width: 12%;">Número</th>
+                                        <th style="width: 6%;">Moneda</th>
+                                        <th style="width: 10%; text-align: right;">Total en divisa con signo</th>
+                                        <th style="width: 12%;">Referencia 1</th>
+                                        <th style="width: 12%;">Referencia 2</th>
+                                        <th style="width: 10%;">Embarque</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-foreach="cdata['invoices']" t-as="inv">
+                                        <tr>
+                                            <td><t t-esc="inv.date_sent" t-options='{"widget": "date"}'/></td>
+                                            <td><t t-esc="inv.invoice_date" t-options='{"widget": "date"}'/></td>
+                                            <td><t t-esc="inv.partner_id.name"/></td>
+                                            <td><t t-esc="inv.x_studio_nmero_de_dte or ''"/></td>
+                                            <td><t t-esc="inv.name"/></td>
+                                            <td><t t-esc="inv.currency_id.name"/></td>
+                                            <td style="text-align: right;">
+                                                <t t-esc="inv.amount_total" t-options='{"widget": "float", "precision": 2}'/>
+                                            </td>
+                                            <td><t t-esc="inv.mrdc_shipment_ref_1 or ''"/></td>
+                                            <td><t t-esc="inv.mrdc_shipment_ref_2 or ''"/></td>
+                                            <td><t t-esc="inv.mrdc_shipment_id.name or ''"/></td>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                            </table>
+
+                            <!-- Totales por empresa -->
+                            <table style="font-size: 10px; margin-top: 5px;">
+                                <tr>
+                                    <td style="width: 50%;"></td>
+                                    <td style="background-color: #b8d4e8; padding: 5px; font-weight: bold;">
+                                        TOTAL A PAGAR <t t-esc="cdata['company'].name"/>
+                                    </td>
+                                    <td style="padding: 5px; font-weight: bold;">TOTAL</td>
+                                    <td style="padding: 5px; font-weight: bold;">Q</td>
+                                    <td style="padding: 5px; text-align: right; border-bottom: 1px solid #000;">
+                                        <t t-esc="cdata['total_gtq']" t-options='{"widget": "float", "precision": 2}'/>
+                                    </td>
+                                </tr>
+                                <t t-if="cdata['bank_gtq']">
+                                    <tr>
+                                        <td></td>
+                                        <td style="background-color: #b8d4e8; padding: 3px; font-size: 9px;">
+                                            Cuenta a Depositar Quetzales # <t t-esc="cdata['bank_gtq'].acc_number"/>
+                                        </td>
+                                        <td style="padding: 5px; font-weight: bold;">TOTAL</td>
+                                        <td style="padding: 5px; font-weight: bold;">$</td>
+                                        <td style="padding: 5px; text-align: right; border-bottom: 1px solid #000;">
+                                            <t t-esc="cdata['total_usd']" t-options='{"widget": "float", "precision": 2}'/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td></td>
+                                        <td style="background-color: #b8d4e8; padding: 3px; font-size: 9px;">
+                                            <t t-esc="cdata['bank_gtq'].bank_id.name if cdata['bank_gtq'].bank_id else ''"/>
+                                        </td>
+                                        <td colspan="3"></td>
+                                    </tr>
+                                </t>
+                                <t t-if="cdata['bank_usd']">
+                                    <tr>
+                                        <td></td>
+                                        <td style="background-color: #b8d4e8; padding: 3px; font-size: 9px;">
+                                            Cuenta a Depositar Dolares # <t t-esc="cdata['bank_usd'].acc_number"/>
+                                        </td>
+                                        <td colspan="3"></td>
+                                    </tr>
+                                    <tr>
+                                        <td></td>
+                                        <td style="background-color: #b8d4e8; padding: 3px; font-size: 9px;">
+                                            <t t-esc="cdata['bank_usd'].bank_id.name if cdata['bank_usd'].bank_id else ''"/>
+                                        </td>
+                                        <td colspan="3"></td>
+                                    </tr>
+                                </t>
+                            </table>
+                        </div>
+                    </t>
+
+                    <!-- RESUMEN GENERAL -->
+                    <div style="margin-top: 30px;">
+                        <table style="width: 100%;">
+                            <tr>
+                                <td style="width: 60%;">
+                                    <h4 style="color: #006666; font-weight: bold;">
+                                        <t t-foreach="companies_data" t-as="cdata">
+                                            <t t-esc="cdata['company'].name"/><t t-if="not cdata_last"> / </t>
+                                        </t>
+                                    </h4>
+                                </td>
+                                <td style="width: 10%; font-weight: bold;">TOTAL:</td>
+                                <td style="width: 5%; background-color: #ffffcc; border: 1px solid #000; padding: 5px;">Q</td>
+                                <td style="width: 15%; background-color: #ffffcc; border: 1px solid #000; padding: 5px; text-align: right; font-weight: bold;">
+                                    <t t-esc="grand_totals['total_gtq']" t-options='{"widget": "float", "precision": 2}'/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td></td>
+                                <td style="font-weight: bold;">TOTAL:</td>
+                                <td style="background-color: #ffffcc; border: 1px solid #000; padding: 5px;">$</td>
+                                <td style="background-color: #ffffcc; border: 1px solid #000; padding: 5px; text-align: right; font-weight: bold;">
+                                    <t t-if="grand_totals['total_usd']">
+                                        <t t-esc="grand_totals['total_usd']" t-options='{"widget": "float", "precision": 2}'/>
+                                    </t>
+                                    <t t-else="">-</t>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <!-- CAMPOS DE FIRMA -->
+                    <div style="margin-top: 50px;">
+                        <p style="margin-bottom: 30px;">
+                            <strong>NOMBRE Y APELLIDO:</strong>
+                            _______________________________________________________________
+                        </p>
+                        <p style="margin-bottom: 30px;">
+                            <strong>FECHA DE RECIBIDO:</strong>
+                            _______________________________________________________________
+                        </p>
+                        <p>
+                            <strong>FIRMA Y SELLO:</strong>
+                            _______________________________________________________________
+                        </p>
+                    </div>
+                </div>
+
+                <!-- PÁGINAS DE ADJUNTOS - IMÁGENES -->
+                <t t-if="attachments['images']">
+                    <t t-foreach="attachments['images']" t-as="att">
+                        <div class="page" style="page-break-before: always;">
+                            <div class="text-center" style="margin-bottom: 10px;">
+                                <h5>Adjunto: <t t-esc="att.name"/></h5>
+                            </div>
+                            <div class="text-center">
+                                <img t-att-src="image_data_uri(att.datas)"
+                                     style="max-width: 100%; max-height: 90%;"
+                                     t-att-alt="att.name"/>
+                            </div>
+                        </div>
+                    </t>
+                </t>
+
+                <!-- NOTA SOBRE PDFs (si no se pueden concatenar) -->
+                <t t-if="attachments['pdfs'] and not attachments['has_pypdf2']">
+                    <div class="page" style="page-break-before: always;">
+                        <h4>Documentos PDF Adjuntos</h4>
+                        <p>Los siguientes documentos PDF están asociados a este embarque:</p>
+                        <ul>
+                            <t t-foreach="attachments['pdfs']" t-as="pdf">
+                                <li><t t-esc="pdf.name"/></li>
+                            </t>
+                        </ul>
+                    </div>
+                </t>
+
+            </t>
+        </t>
+    </template>
+</odoo>

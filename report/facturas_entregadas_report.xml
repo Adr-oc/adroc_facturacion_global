@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Report Action -->
+    <record id="action_report_facturas_entregadas" model="ir.actions.report">
+        <field name="name">Facturas por Enviar</field>
+        <field name="model">account.move</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">adroc_facturacion_global.report_facturas_entregadas</field>
+        <field name="report_file">adroc_facturacion_global.report_facturas_entregadas</field>
+        <field name="print_report_name">'Facturas_por_Enviar_%s' % (object.partner_id.name or 'Reporte')</field>
+        <field name="binding_model_id" ref="account.model_account_move"/>
+        <field name="binding_type">report</field>
+    </record>
+</odoo>

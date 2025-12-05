@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Report Action -->
+    <record id="action_report_liquidacion_gastos" model="ir.actions.report">
+        <field name="name">Liquidación de Gastos de Importación</field>
+        <field name="model">account.move</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">adroc_facturacion_global.report_liquidacion_gastos</field>
+        <field name="report_file">adroc_facturacion_global.report_liquidacion_gastos</field>
+        <field name="print_report_name">'Liquidacion_Gastos_%s' % (object.mrdc_shipment_id.name or 'Reporte')</field>
+        <field name="binding_model_id" ref="account.model_account_move"/>
+        <field name="binding_type">report</field>
+    </record>
+</odoo>
