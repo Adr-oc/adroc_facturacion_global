@@ -27,36 +27,33 @@ class LiquidacionGastosReport(models.AbstractModel):
 
     @api.model
     def _get_report_values(self, docids, data=None):
-        invoices = self.env['account.move'].browse(docids)
-
-        # Filtrar solo facturas de cliente
-        customer_invoices = invoices.filtered(
-            lambda inv: inv.move_type in ('out_invoice', 'out_refund')
-        )
+        # Si viene de wizard, usar los datos del wizard
+        if data and data.get('wizard_id'):
+            wizard = self.env['liquidacion.gastos.wizard'].browse(data['wizard_id'])
+            customer_invoices = wizard.invoice_ids
+            selected_attachments = wizard.attachment_ids
+        else:
+            invoices = self.env['account.move'].browse(docids)
+            customer_invoices = invoices.filtered(
+                lambda inv: inv.move_type in ('out_invoice', 'out_refund')
+            )
+            selected_attachments = self.env['ir.attachment']
 
         if not customer_invoices:
             raise UserError(_('Debe seleccionar facturas de cliente.'))
 
-        # Validar que todas las facturas sean del mismo embarque
+        # Obtener todos los embarques (pueden ser múltiples)
         shipments = customer_invoices.mapped('mrdc_shipment_id')
-        shipments = shipments.filtered(lambda s: s)  # Filtrar los que no son False
-
-        if len(shipments) > 1:
-            raise UserError(_(
-                'Todas las facturas deben pertenecer al mismo embarque.\n'
-                'Embarques seleccionados: %s'
-            ) % ', '.join(shipments.mapped('name')))
-
-        if not shipments:
-            raise UserError(_('Las facturas seleccionadas no tienen embarque asociado.'))
-
-        shipment = shipments[0]
+        shipments = shipments.filtered(lambda s: s)
 
         # Agrupar facturas por empresa
         companies_data = self._get_invoices_by_company(customer_invoices)
 
-        # Obtener adjuntos
-        attachments = self._get_attachments(shipment, customer_invoices)
+        # Obtener adjuntos seleccionados o todos si no viene de wizard
+        if selected_attachments:
+            attachments = self._process_selected_attachments(selected_attachments)
+        else:
+            attachments = self._get_attachments(shipments, customer_invoices)
 
         # Calcular totales generales
         grand_totals = self._get_grand_totals(customer_invoices)
@@ -65,7 +62,8 @@ class LiquidacionGastosReport(models.AbstractModel):
             'doc_ids': docids,
             'doc_model': 'account.move',
             'docs': customer_invoices,
-            'shipment': shipment,
+            'shipments': shipments,
+            'shipment': shipments[0] if shipments else False,
             'companies_data': companies_data,
             'attachments': attachments,
             'grand_totals': grand_totals,
@@ -104,15 +102,15 @@ class LiquidacionGastosReport(models.AbstractModel):
 
         return companies_data
 
-    def _get_attachments(self, shipment, invoices):
-        """Obtiene adjuntos del embarque y de las facturas."""
+    def _get_attachments(self, shipments, invoices):
+        """Obtiene adjuntos de los embarques y de las facturas."""
         Attachment = self.env['ir.attachment']
 
-        # Adjuntos del embarque
+        # Adjuntos de los embarques
         shipment_attachments = Attachment.search([
             ('res_model', '=', 'mrdc.shipment'),
-            ('res_id', '=', shipment.id),
-        ])
+            ('res_id', 'in', shipments.ids),
+        ]) if shipments else Attachment
 
         # Adjuntos de las facturas
         invoice_attachments = Attachment.search([
@@ -122,6 +120,10 @@ class LiquidacionGastosReport(models.AbstractModel):
 
         all_attachments = shipment_attachments | invoice_attachments
 
+        return self._process_selected_attachments(all_attachments)
+
+    def _process_selected_attachments(self, all_attachments):
+        """Procesa y separa los adjuntos por tipo."""
         # Separar por tipo
         image_attachments = all_attachments.filtered(
             lambda a: a.mimetype and a.mimetype.startswith('image/')

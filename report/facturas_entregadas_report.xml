@@ -1,5 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <!-- Paperformat Landscape Compacto -->
+    <record id="paperformat_facturas_entregadas_landscape" model="report.paperformat">
+        <field name="name">Facturas Entregadas Landscape</field>
+        <field name="default" eval="False"/>
+        <field name="format">A4</field>
+        <field name="orientation">Landscape</field>
+        <field name="margin_top">10</field>
+        <field name="margin_bottom">10</field>
+        <field name="margin_left">5</field>
+        <field name="margin_right">5</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">5</field>
+        <field name="dpi">96</field>
+    </record>
+
     <!-- Report Action -->
     <record id="action_report_facturas_entregadas" model="ir.actions.report">
         <field name="name">Facturas por Enviar</field>
@@ -10,5 +25,6 @@
         <field name="print_report_name">'Facturas_por_Enviar_%s' % (object.partner_id.name or 'Reporte')</field>
         <field name="binding_model_id" ref="account.model_account_move"/>
         <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="paperformat_facturas_entregadas_landscape"/>
     </record>
 </odoo>

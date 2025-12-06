@@ -5,44 +5,54 @@
             <t t-foreach="partners_data" t-as="pdata">
                 <t t-call="web.external_layout">
                     <div class="page">
-                        <!-- Header Title -->
-                        <div class="text-center" style="margin-bottom: 20px;">
-                            <h2 style="color: #2c5282; font-weight: bold;">
-                                DETALLE DE FACTURAS ENTREGADAS
-                            </h2>
-                        </div>
+                        <!-- Estilos para tabla compacta -->
+                        <style>
+                            .compact-table { font-size: 7px; line-height: 1.2; }
+                            .compact-table th, .compact-table td { padding: 2px 3px !important; vertical-align: middle; }
+                            .compact-table th { font-weight: bold; }
+                        </style>
 
-                        <!-- Partner Name -->
-                        <div style="margin-bottom: 15px;">
-                            <h4 style="color: #c6a700; font-weight: bold;">
-                                <t t-esc="pdata['partner'].name"/>
+                        <!-- Header Title -->
+                        <div class="text-center" style="margin-bottom: 8px;">
+                            <h4 style="color: #2c5282; font-weight: bold; margin: 0;">
+                                DETALLE DE FACTURAS ENTREGADAS
                             </h4>
                         </div>
 
-                        <!-- Main Table -->
-                        <t t-set="row_number" t-value="0"/>
+                        <!-- Partner Name -->
+                        <div style="margin-bottom: 5px;">
+                            <span style="color: #c6a700; font-weight: bold; font-size: 10px;">
+                                <t t-esc="pdata['partner'].name"/>
+                            </span>
+                        </div>
 
-                        <t t-foreach="pdata['groups']" t-as="group">
-                            <table class="table table-sm table-bordered" style="font-size: 11px; margin-bottom: 20px;">
-                                <thead>
-                                    <tr style="background-color: #f8f9fa;">
-                                        <th style="width: 4%;">NO.</th>
-                                        <th style="width: 10%;">Fecha de Envio</th>
-                                        <th style="width: 10%;">Fecha</th>
-                                        <th style="width: 12%;">Numero FEL</th>
-                                        <th style="width: 14%;">Numero</th>
-                                        <th style="width: 8%;">Moneda</th>
-                                        <th style="width: 10%; text-align: right;">Total</th>
-                                        <th style="width: 14%;">Referencia 1</th>
-                                        <th style="width: 14%;">Referencia 2</th>
-                                        <th style="width: 14%;">Embarque</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
+                        <!-- Single Main Table -->
+                        <table class="table table-sm table-bordered compact-table" style="margin-bottom: 8px;">
+                            <thead>
+                                <tr style="background-color: #f8f9fa;">
+                                    <th style="width: 2%;">NO.</th>
+                                    <th style="width: 9%;">Empresa</th>
+                                    <th style="width: 6%;">F.Envio</th>
+                                    <th style="width: 6%;">Fecha</th>
+                                    <th style="width: 8%;">No. FEL</th>
+                                    <th style="width: 10%;">Numero</th>
+                                    <th style="width: 3%;">Mon</th>
+                                    <th style="width: 7%; text-align: right;">Total</th>
+                                    <th style="width: 6%;">Serie CA</th>
+                                    <th style="width: 8%;">No. Fact CA</th>
+                                    <th style="width: 9%;">Ref 1</th>
+                                    <th style="width: 9%;">Ref 2</th>
+                                    <th style="width: 9%;">Embarque</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-set="row_number" t-value="0"/>
+                                <t t-foreach="pdata['groups']" t-as="group">
                                     <t t-foreach="group['invoices']" t-as="invoice">
                                         <t t-set="row_number" t-value="row_number + 1"/>
                                         <tr>
                                             <td><t t-esc="row_number"/></td>
+                                            <td><t t-esc="invoice.company_id.name"/></td>
                                             <td><t t-esc="invoice.date_sent" t-options='{"widget": "date"}'/></td>
                                             <td><t t-esc="invoice.invoice_date" t-options='{"widget": "date"}'/></td>
                                             <td><t t-esc="invoice.x_studio_nmero_de_dte or ''"/></td>
@@ -51,21 +61,23 @@
                                             <td style="text-align: right;">
                                                 <t t-esc="invoice.amount_total" t-options='{"widget": "float", "precision": 2}'/>
                                             </td>
+                                            <td><t t-esc="invoice.invoice_series or ''"/></td>
+                                            <td><t t-esc="invoice.invoice_number or ''"/></td>
                                             <td><t t-esc="invoice.mrdc_shipment_ref_1 or ''"/></td>
                                             <td><t t-esc="invoice.mrdc_shipment_ref_2 or ''"/></td>
                                             <td><t t-esc="invoice.mrdc_shipment_id.name or ''"/></td>
                                         </tr>
                                     </t>
-                                </tbody>
-                            </table>
-                        </t>
+                                </t>
+                            </tbody>
+                        </table>
 
                         <!-- Totals Row -->
-                        <table class="table table-sm table-bordered" style="font-size: 11px;">
+                        <table class="table table-sm table-bordered compact-table" style="margin-top: 5px;">
                             <tbody>
                                 <tr style="background-color: #f8f9fa; font-weight: bold;">
-                                    <td style="width: 40%;"></td>
-                                    <td style="width: 15%;">Cuenta Ajena</td>
+                                    <td style="width: 50%;"></td>
+                                    <td style="width: 12%;">Cuenta Ajena</td>
                                     <td style="width: 10%; text-align: right;">
                                         <t t-esc="pdata['totals']['cuenta_ajena']" t-options='{"widget": "float", "precision": 2}'/>
                                     </td>
@@ -73,7 +85,7 @@
                                     <td style="width: 10%; text-align: right;">
                                         <t t-esc="pdata['totals']['honorarios']" t-options='{"widget": "float", "precision": 2}'/>
                                     </td>
-                                    <td style="width: 7%;">TOTAL</td>
+                                    <td style="width: 5%;">TOTAL</td>
                                     <td style="width: 8%; text-align: right;">
                                         <t t-esc="pdata['totals']['total']" t-options='{"widget": "float", "precision": 2}'/>
                                     </td>
@@ -82,31 +94,21 @@
                         </table>
 
                         <!-- Delivery Address -->
-                        <div style="margin-top: 20px;">
-                            <p>
+                        <div style="margin-top: 10px; font-size: 8px;">
+                            <p style="margin: 0;">
                                 <strong>Direccion Entrega:</strong>
                                 <t t-esc="pdata['partner'].name"/>
-                                <t t-if="pdata['partner'].street">
-                                    <t t-esc="pdata['partner'].street"/>
-                                </t>
-                                <t t-if="pdata['partner'].street2">
-                                    , <t t-esc="pdata['partner'].street2"/>
-                                </t>
-                                <t t-if="pdata['partner'].city">
-                                    , <t t-esc="pdata['partner'].city"/>
-                                </t>
-                                <t t-if="pdata['partner'].state_id">
-                                    <t t-esc="pdata['partner'].state_id.name"/>
-                                </t>
-                                <t t-if="pdata['partner'].country_id">
-                                    <t t-esc="pdata['partner'].country_id.name"/>
-                                </t>
+                                <t t-if="pdata['partner'].street"> - <t t-esc="pdata['partner'].street"/></t>
+                                <t t-if="pdata['partner'].street2">, <t t-esc="pdata['partner'].street2"/></t>
+                                <t t-if="pdata['partner'].city">, <t t-esc="pdata['partner'].city"/></t>
+                                <t t-if="pdata['partner'].state_id"> <t t-esc="pdata['partner'].state_id.name"/></t>
+                                <t t-if="pdata['partner'].country_id"> <t t-esc="pdata['partner'].country_id.name"/></t>
                             </p>
                         </div>
 
                         <!-- Signature -->
-                        <div style="margin-top: 40px;">
-                            <p>
+                        <div style="margin-top: 15px; font-size: 8px;">
+                            <p style="margin: 0;">
                                 <strong>Firma quien recibe:</strong>
                                 ___________________________________________
                             </p>

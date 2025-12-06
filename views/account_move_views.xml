@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Inherit Invoice List View to add new fields -->
+    <record id="view_invoice_tree_inherit_facturacion_global" model="ir.ui.view">
+        <field name="name">account.move.tree.inherit.facturacion.global</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_invoice_tree"/>
+        <field name="arch" type="xml">
+            <field name="invoice_partner_display_name" position="before">
+                <field name="password_payment_date" optional="show"/>
+                <field name="invoice_comment" optional="show"/>
+            </field>
+        </field>
+    </record>
+</odoo>
