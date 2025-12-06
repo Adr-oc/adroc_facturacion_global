@@ -40,9 +40,12 @@ class FacturasEntregadasReport(models.AbstractModel):
 
         for partner in partner_ids.sorted(key=lambda p: p.name or ''):
             partner_invoices = invoices.filtered(lambda inv: inv.partner_id == partner)
+            # Obtener lista de empresas únicas para colores
+            companies = partner_invoices.mapped('company_id').sorted(key=lambda c: c.name or '')
 
             partners_data.append({
                 'partner': partner,
+                'companies': companies,
                 'groups': self._get_invoices_grouped(partner_invoices),
                 'totals': self._get_totals(partner_invoices),
             })

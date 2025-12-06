@@ -3,39 +3,54 @@
     <template id="report_facturas_entregadas">
         <t t-call="web.html_container">
             <t t-foreach="partners_data" t-as="pdata">
-                <t t-call="web.external_layout">
+                <t t-call="web.basic_layout">
                     <div class="page">
                         <!-- Header Title -->
-                        <div class="text-center" style="margin-bottom: 10px;">
-                            <h4 style="color: #2c5282; font-weight: bold; margin: 0;">
+                        <div class="text-center" style="margin-bottom: 15px;">
+                            <h3 style="color: #2c5282; font-weight: bold; margin: 0;">
                                 DETALLE DE FACTURAS ENTREGADAS
-                            </h4>
+                            </h3>
                         </div>
 
                         <!-- Partner Name -->
-                        <div style="margin-bottom: 8px;">
-                            <span style="color: #c6a700; font-weight: bold; font-size: 12px;">
+                        <div style="margin-bottom: 12px;">
+                            <span style="color: #c6a700; font-weight: bold; font-size: 14px;">
                                 <t t-esc="pdata['partner'].name"/>
                             </span>
                         </div>
 
+                        <!-- Leyenda de colores por empresa -->
+                        <div style="margin-bottom: 10px; font-size: 10px;">
+                            <t t-set="company_colors" t-value="{}"/>
+                            <t t-set="color_palette" t-value="['rgba(200, 230, 255, 0.7)', 'rgba(255, 230, 200, 0.7)', 'rgba(200, 255, 200, 0.7)', 'rgba(255, 200, 255, 0.7)', 'rgba(255, 255, 200, 0.7)']"/>
+                            <t t-set="color_idx" t-value="0"/>
+                            <t t-foreach="pdata['companies']" t-as="comp">
+                                <t t-set="company_colors" t-value="dict(list(company_colors.items()) + [(comp.id, color_palette[color_idx % len(color_palette)])])"/>
+                                <span style="margin-right: 15px;">
+                                    <span t-attf-style="display: inline-block; width: 15px; height: 15px; background-color: #{color_palette[color_idx % len(color_palette)]}; border: 1px solid #999; vertical-align: middle; margin-right: 5px;"></span>
+                                    <t t-esc="comp.name"/>
+                                </span>
+                                <t t-set="color_idx" t-value="color_idx + 1"/>
+                            </t>
+                        </div>
+
                         <!-- Single Main Table -->
-                        <table class="table table-sm table-bordered" style="font-size: 9px; margin-bottom: 10px;">
+                        <table class="table table-sm table-bordered" style="font-size: 11px; margin-top: 15px;">
                             <thead>
                                 <tr style="background-color: #f8f9fa;">
-                                    <th style="width: 3%; padding: 3px;">NO.</th>
-                                    <th style="width: 10%; padding: 3px;">Empresa</th>
-                                    <th style="width: 6%; padding: 3px;">F.Envio</th>
-                                    <th style="width: 6%; padding: 3px;">Fecha</th>
-                                    <th style="width: 8%; padding: 3px;">No. FEL</th>
-                                    <th style="width: 10%; padding: 3px;">Numero</th>
-                                    <th style="width: 4%; padding: 3px;">Mon</th>
-                                    <th style="width: 8%; padding: 3px; text-align: right;">Total</th>
-                                    <th style="width: 6%; padding: 3px;">Serie CA</th>
-                                    <th style="width: 8%; padding: 3px;">No. Fact CA</th>
-                                    <th style="width: 10%; padding: 3px;">Ref 1</th>
-                                    <th style="width: 10%; padding: 3px;">Ref 2</th>
-                                    <th style="width: 11%; padding: 3px;">Embarque</th>
+                                    <th style="padding: 5px;">NO.</th>
+                                    <th style="padding: 5px;">Empresa</th>
+                                    <th style="padding: 5px;">F.Envio</th>
+                                    <th style="padding: 5px;">Fecha</th>
+                                    <th style="padding: 5px;">No. FEL</th>
+                                    <th style="padding: 5px;">Numero</th>
+                                    <th style="padding: 5px;">Mon</th>
+                                    <th style="padding: 5px; text-align: right;">Total</th>
+                                    <th style="padding: 5px;">Serie CA</th>
+                                    <th style="padding: 5px;">No. Fact CA</th>
+                                    <th style="padding: 5px;">Ref 1</th>
+                                    <th style="padding: 5px;">Ref 2</th>
+                                    <th style="padding: 5px;">Embarque</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -43,22 +58,32 @@
                                 <t t-foreach="pdata['groups']" t-as="group">
                                     <t t-foreach="group['invoices']" t-as="invoice">
                                         <t t-set="row_number" t-value="row_number + 1"/>
-                                        <tr>
-                                            <td style="padding: 2px 3px;"><t t-esc="row_number"/></td>
-                                            <td style="padding: 2px 3px;"><t t-esc="invoice.company_id.name"/></td>
-                                            <td style="padding: 2px 3px;"><t t-esc="invoice.date_sent" t-options='{"widget": "date"}'/></td>
-                                            <td style="padding: 2px 3px;"><t t-esc="invoice.invoice_date" t-options='{"widget": "date"}'/></td>
-                                            <td style="padding: 2px 3px;"><t t-esc="invoice.x_studio_nmero_de_dte or ''"/></td>
-                                            <td style="padding: 2px 3px;"><t t-esc="invoice.name"/></td>
-                                            <td style="padding: 2px 3px;"><t t-esc="invoice.currency_id.name"/></td>
-                                            <td style="padding: 2px 3px; text-align: right;">
+                                        <t t-set="row_color" t-value="company_colors.get(invoice.company_id.id, 'transparent')"/>
+                                        <tr t-attf-style="background-color: #{row_color};">
+                                            <td style="padding: 4px;"><t t-esc="row_number"/></td>
+                                            <td style="padding: 4px;"><t t-esc="invoice.company_id.name"/></td>
+                                            <td style="padding: 4px;"><t t-esc="invoice.date_sent" t-options='{"widget": "date"}'/></td>
+                                            <td style="padding: 4px;"><t t-esc="invoice.invoice_date" t-options='{"widget": "date"}'/></td>
+                                            <td style="padding: 4px;"><t t-esc="invoice.x_studio_nmero_de_dte or ''"/></td>
+                                            <td style="padding: 4px;"><t t-esc="invoice.name"/></td>
+                                            <td style="padding: 4px;"><t t-esc="invoice.currency_id.name"/></td>
+                                            <td style="padding: 4px; text-align: right;">
                                                 <t t-esc="invoice.amount_total" t-options='{"widget": "float", "precision": 2}'/>
                                             </td>
-                                            <td style="padding: 2px 3px;"><t t-esc="invoice.invoice_series or ''"/></td>
-                                            <td style="padding: 2px 3px;"><t t-esc="invoice.invoice_number or ''"/></td>
-                                            <td style="padding: 2px 3px;"><t t-esc="invoice.mrdc_shipment_ref_1 or ''"/></td>
-                                            <td style="padding: 2px 3px;"><t t-esc="invoice.mrdc_shipment_ref_2 or ''"/></td>
-                                            <td style="padding: 2px 3px;"><t t-esc="invoice.mrdc_shipment_id.name or ''"/></td>
+                                            <!-- Serie CA y No. Fact CA solo para Cuenta Ajena -->
+                                            <td style="padding: 4px;">
+                                                <t t-if="invoice.mrdc_expense_external_account_id">
+                                                    <t t-esc="invoice.mrdc_expense_external_account_id.invoice_series or ''"/>
+                                                </t>
+                                            </td>
+                                            <td style="padding: 4px;">
+                                                <t t-if="invoice.mrdc_expense_external_account_id">
+                                                    <t t-esc="invoice.mrdc_expense_external_account_id.invoice_number or ''"/>
+                                                </t>
+                                            </td>
+                                            <td style="padding: 4px;"><t t-esc="invoice.mrdc_shipment_ref_1 or ''"/></td>
+                                            <td style="padding: 4px;"><t t-esc="invoice.mrdc_shipment_ref_2 or ''"/></td>
+                                            <td style="padding: 4px;"><t t-esc="invoice.mrdc_shipment_id.name or ''"/></td>
                                         </tr>
                                     </t>
                                 </t>
@@ -66,41 +91,28 @@
                         </table>
 
                         <!-- Totals Row -->
-                        <table class="table table-sm table-bordered" style="font-size: 9px; margin-top: 8px;">
+                        <table class="table table-sm table-bordered" style="font-size: 11px; margin-top: 15px;">
                             <tbody>
                                 <tr style="background-color: #f8f9fa; font-weight: bold;">
-                                    <td style="width: 50%; padding: 4px;"></td>
-                                    <td style="width: 12%; padding: 4px;">Cuenta Ajena</td>
-                                    <td style="width: 10%; padding: 4px; text-align: right;">
+                                    <td style="width: 50%; padding: 6px;"></td>
+                                    <td style="padding: 6px;">Cuenta Ajena</td>
+                                    <td style="padding: 6px; text-align: right;">
                                         <t t-esc="pdata['totals']['cuenta_ajena']" t-options='{"widget": "float", "precision": 2}'/>
                                     </td>
-                                    <td style="width: 10%; padding: 4px;">Honorarios</td>
-                                    <td style="width: 10%; padding: 4px; text-align: right;">
+                                    <td style="padding: 6px;">Honorarios</td>
+                                    <td style="padding: 6px; text-align: right;">
                                         <t t-esc="pdata['totals']['honorarios']" t-options='{"widget": "float", "precision": 2}'/>
                                     </td>
-                                    <td style="width: 5%; padding: 4px;">TOTAL</td>
-                                    <td style="width: 8%; padding: 4px; text-align: right;">
+                                    <td style="padding: 6px;">TOTAL</td>
+                                    <td style="padding: 6px; text-align: right;">
                                         <t t-esc="pdata['totals']['total']" t-options='{"widget": "float", "precision": 2}'/>
                                     </td>
                                 </tr>
                             </tbody>
                         </table>
 
-                        <!-- Delivery Address -->
-                        <div style="margin-top: 15px; font-size: 10px;">
-                            <p style="margin: 0;">
-                                <strong>Direccion Entrega:</strong>
-                                <t t-esc="pdata['partner'].name"/>
-                                <t t-if="pdata['partner'].street"> - <t t-esc="pdata['partner'].street"/></t>
-                                <t t-if="pdata['partner'].street2">, <t t-esc="pdata['partner'].street2"/></t>
-                                <t t-if="pdata['partner'].city">, <t t-esc="pdata['partner'].city"/></t>
-                                <t t-if="pdata['partner'].state_id"> <t t-esc="pdata['partner'].state_id.name"/></t>
-                                <t t-if="pdata['partner'].country_id"> <t t-esc="pdata['partner'].country_id.name"/></t>
-                            </p>
-                        </div>
-
                         <!-- Signature -->
-                        <div style="margin-top: 20px; font-size: 10px;">
+                        <div style="margin-top: 25px; font-size: 11px;">
                             <p style="margin: 0;">
                                 <strong>Firma quien recibe:</strong>
                                 ___________________________________________
