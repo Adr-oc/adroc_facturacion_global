@@ -106,18 +106,20 @@
                             </div>
 
                             <!-- Tabla de facturas -->
-                            <table class="table table-sm table-bordered" style="font-size: 10px;">
+                            <table class="table table-sm table-bordered" style="font-size: 9px;">
                                 <thead>
                                     <tr style="background-color: #f0f0f0;">
-                                        <th style="width: 8%;">Fecha de Envío</th>
-                                        <th style="width: 8%;">Fecha</th>
-                                        <th style="width: 20%;">Nombre del socio a mostrar en la factura.</th>
-                                        <th style="width: 10%;">Numero FEL</th>
-                                        <th style="width: 12%;">Número</th>
-                                        <th style="width: 6%;">Moneda</th>
-                                        <th style="width: 10%; text-align: right;">Total en divisa con signo</th>
-                                        <th style="width: 12%;">Referencia 1</th>
-                                        <th style="width: 12%;">Referencia 2</th>
+                                        <th style="width: 6%;">F.Envío</th>
+                                        <th style="width: 6%;">Fecha</th>
+                                        <th style="width: 16%;">Cliente</th>
+                                        <th style="width: 8%;">No. FEL</th>
+                                        <th style="width: 10%;">Número</th>
+                                        <th style="width: 4%;">Mon</th>
+                                        <th style="width: 8%; text-align: right;">Total</th>
+                                        <th style="width: 6%;">Serie CA</th>
+                                        <th style="width: 8%;">No. Fact CA</th>
+                                        <th style="width: 9%;">Ref 1</th>
+                                        <th style="width: 9%;">Ref 2</th>
                                         <th style="width: 10%;">Embarque</th>
                                     </tr>
                                 </thead>
@@ -133,6 +135,8 @@
                                             <td style="text-align: right;">
                                                 <t t-esc="inv.amount_total" t-options='{"widget": "float", "precision": 2}'/>
                                             </td>
+                                            <td><t t-esc="inv.invoice_series or ''"/></td>
+                                            <td><t t-esc="inv.invoice_number or ''"/></td>
                                             <td><t t-esc="inv.mrdc_shipment_ref_1 or ''"/></td>
                                             <td><t t-esc="inv.mrdc_shipment_ref_2 or ''"/></td>
                                             <td><t t-esc="inv.mrdc_shipment_id.name or ''"/></td>
