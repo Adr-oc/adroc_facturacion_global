@@ -9,6 +9,9 @@
             <field name="invoice_partner_display_name" position="before">
                 <field name="password_payment_date" optional="show"/>
                 <field name="invoice_comment" optional="show"/>
+                <field name="related_expense_series" optional="hide" string="Serie CA"/>
+                <field name="related_expense_number" optional="hide" string="No. Fact CA"/>
+                <field name="related_expense_id" optional="hide"/>
             </field>
         </field>
     </record>

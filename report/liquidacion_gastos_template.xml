@@ -135,15 +135,21 @@
                                             <td style="text-align: right;">
                                                 <t t-esc="inv.amount_total" t-options='{"widget": "float", "precision": 2}'/>
                                             </td>
-                                            <!-- Serie CA y No. Fact CA solo para Cuenta Ajena -->
+                                            <!-- Serie CA y No. Fact CA - busca en cuenta ajena directa o por línea relacionada -->
                                             <td>
                                                 <t t-if="inv.mrdc_expense_external_account_id">
                                                     <t t-esc="inv.mrdc_expense_external_account_id.invoice_series or ''"/>
+                                                </t>
+                                                <t t-elif="inv.related_expense_series">
+                                                    <t t-esc="inv.related_expense_series"/>
                                                 </t>
                                             </td>
                                             <td>
                                                 <t t-if="inv.mrdc_expense_external_account_id">
                                                     <t t-esc="inv.mrdc_expense_external_account_id.invoice_number or ''"/>
+                                                </t>
+                                                <t t-elif="inv.related_expense_number">
+                                                    <t t-esc="inv.related_expense_number"/>
                                                 </t>
                                             </td>
                                             <td><t t-esc="inv.mrdc_shipment_ref_1 or ''"/></td>
