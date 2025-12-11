@@ -88,6 +88,26 @@ class LiquidacionGastosWizard(models.TransientModel):
 
         res['invoice_ids'] = [(6, 0, customer_invoices.ids)]
 
+        # Pre-seleccionar todos los adjuntos disponibles
+        Attachment = self.env['ir.attachment']
+        shipments = customer_invoices.mapped('mrdc_shipment_id').filtered(lambda s: s)
+
+        # Adjuntos de embarques
+        shipment_attachments = Attachment.search([
+            ('res_model', '=', 'mrdc.shipment'),
+            ('res_id', 'in', shipments.ids),
+        ]) if shipments else Attachment
+
+        # Adjuntos de facturas
+        invoice_attachments = Attachment.search([
+            ('res_model', '=', 'account.move'),
+            ('res_id', 'in', customer_invoices.ids),
+        ])
+
+        all_attachments = shipment_attachments | invoice_attachments
+        if all_attachments:
+            res['attachment_ids'] = [(6, 0, all_attachments.ids)]
+
         return res
 
     def action_print_report(self):

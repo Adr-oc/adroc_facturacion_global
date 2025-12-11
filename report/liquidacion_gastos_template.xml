@@ -120,6 +120,8 @@
                                         <th style="width: 8%;">No. Fact CA</th>
                                         <th style="width: 9%;">Ref 1</th>
                                         <th style="width: 9%;">Ref 2</th>
+                                        <th style="width: 9%;">Ref 3</th>
+                                        <th style="width: 9%;">DUCA</th>
                                         <th style="width: 10%;">Embarque</th>
                                     </tr>
                                 </thead>
@@ -129,32 +131,24 @@
                                             <td><t t-esc="inv.date_sent" t-options='{"widget": "date"}'/></td>
                                             <td><t t-esc="inv.invoice_date" t-options='{"widget": "date"}'/></td>
                                             <td><t t-esc="inv.partner_id.name"/></td>
-                                            <td><t t-esc="inv.x_studio_nmero_de_dte or ''"/></td>
+                                            <td><t t-esc="inv.invoice_number or x_studio_nmero_de_dte or ''"/></td>
                                             <td><t t-esc="inv.name"/></td>
                                             <td><t t-esc="inv.currency_id.name"/></td>
                                             <td style="text-align: right;">
                                                 <t t-esc="inv.amount_total" t-options='{"widget": "float", "precision": 2}'/>
                                             </td>
-                                            <!-- Serie CA y No. Fact CA - busca en cuenta ajena directa o por línea relacionada -->
                                             <td>
-                                                <t t-if="inv.mrdc_expense_external_account_id">
-                                                    <t t-esc="inv.mrdc_expense_external_account_id.invoice_series or ''"/>
-                                                </t>
-                                                <t t-elif="inv.related_expense_series">
-                                                    <t t-esc="inv.related_expense_series"/>
-                                                </t>
+                                                <t t-esc="gasto.invoice_series or gasto.x_studio_serie or ''"/>
                                             </td>
                                             <td>
-                                                <t t-if="inv.mrdc_expense_external_account_id">
-                                                    <t t-esc="inv.mrdc_expense_external_account_id.invoice_number or ''"/>
-                                                </t>
-                                                <t t-elif="inv.related_expense_number">
-                                                    <t t-esc="inv.related_expense_number"/>
-                                                </t>
+                                                <t t-esc="inv.invoice_number or inv.x_studio_nmero_de_dte or ''"/>
                                             </td>
-                                            <td><t t-esc="inv.mrdc_shipment_ref_1 or ''"/></td>
-                                            <td><t t-esc="inv.mrdc_shipment_ref_2 or ''"/></td>
-                                            <td><t t-esc="inv.mrdc_shipment_id.name or ''"/></td>
+                                            <td><t t-esc="inv.referencia_1 or inv.mrdc_shipment_id.ref_1 or ''"/></td>
+                                            <td><t t-esc="inv.referencia_2 or inv.mrdc_shipment_id.ref_2 or ''"/></td>
+                                            <td><t t-esc="inv.referencia_3 or inv.mrdc_shipment_id.ref_3 or ''"/></td>
+                                            <td><t t-esc="inv.duca or inv.mrdc_shipment_id.customs_declaration_number or ''"/></td>
+                                            <td><t t-esc="inv.bl or inv.mrdc_shipment_id.bl_awb_number_manual or ''"/></td>
+                                            <td><t t-esc="inv.mrdc_shipment_id.name or inv.embarque_id.name or ''"/></td>
                                         </tr>
                                     </t>
                                 </tbody>
@@ -261,34 +255,7 @@
                     </div>
                 </div>
 
-                <!-- PÁGINAS DE ADJUNTOS - IMÁGENES -->
-                <t t-if="attachments['images']">
-                    <t t-foreach="attachments['images']" t-as="att">
-                        <div class="page" style="page-break-before: always;">
-                            <div class="text-center" style="margin-bottom: 10px;">
-                                <h5>Adjunto: <t t-esc="att.name"/></h5>
-                            </div>
-                            <div class="text-center">
-                                <img t-att-src="image_data_uri(att.datas)"
-                                     style="max-width: 100%; max-height: 90%;"
-                                     t-att-alt="att.name"/>
-                            </div>
-                        </div>
-                    </t>
-                </t>
-
-                <!-- NOTA SOBRE PDFs (si no se pueden concatenar) -->
-                <t t-if="attachments['pdfs'] and not attachments['has_pypdf2']">
-                    <div class="page" style="page-break-before: always;">
-                        <h4>Documentos PDF Adjuntos</h4>
-                        <p>Los siguientes documentos PDF están asociados a este embarque:</p>
-                        <ul>
-                            <t t-foreach="attachments['pdfs']" t-as="pdf">
-                                <li><t t-esc="pdf.name"/></li>
-                            </t>
-                        </ul>
-                    </div>
-                </t>
+                <!-- Los adjuntos (PDFs e imágenes) se concatenan automáticamente al PDF final -->
 
             </t>
         </t>

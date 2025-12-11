@@ -50,10 +50,12 @@ class AccountMove(models.Model):
             # Buscar si esta factura aparece como move_id en alguna línea de cuenta ajena
             line = ExternalLine.search([('move_id', '=', move.id)], limit=1)
             move.related_external_line_id = line
-            if line:
-                move.related_expense_id = line.expense_id
-                move.related_expense_series = line.invoice_series or ''
-                move.related_expense_number = line.invoice_number or ''
+            if line and line.expense_id:
+                expense = line.expense_id
+                move.related_expense_id = expense
+                # Obtener serie y número del GASTO (no de la línea)
+                move.related_expense_series = expense.invoice_series or expense.x_studio_serie or ''
+                move.related_expense_number = expense.invoice_number or expense.x_studio_nmero_de_dte or ''
             else:
                 move.related_expense_id = False
                 move.related_expense_series = ''
