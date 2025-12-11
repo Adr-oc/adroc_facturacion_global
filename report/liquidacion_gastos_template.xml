@@ -138,7 +138,7 @@
                                                 <t t-esc="inv.amount_total" t-options='{"widget": "float", "precision": 2}'/>
                                             </td>
                                             <td>
-                                                <t t-esc="gasto.invoice_series or gasto.x_studio_serie or ''"/>
+                                                <t t-esc="inv.invoice_series or inv.x_studio_serie or ''"/>
                                             </td>
                                             <td>
                                                 <t t-esc="inv.invoice_number or inv.x_studio_nmero_de_dte or ''"/>
