@@ -6,50 +6,77 @@
         <field name="model">liquidacion.gastos.wizard</field>
         <field name="arch" type="xml">
             <form string="Liquidación de Gastos de Importación">
-
-                <group>
-                    <group string="Embarques">
-                        <field name="shipment_ids" readonly="1" widget="many2many_tags" options="{'no_create': True}"/>
-                    </group>
-                    <group string="Facturas seleccionadas">
-                        <field name="invoice_ids" nolabel="1" readonly="1">
-                            <list>
-                                <field name="name"/>
-                                <field name="partner_id"/>
-                                <field name="amount_total"/>
-                                <field name="currency_id"/>
-                            </list>
-                        </field>
-                    </group>
-                </group>
-
-                <group string="Seleccionar Adjuntos a Incluir">
-                    <div class="mb-3">
-                        <button name="action_select_all"
-                                string="Seleccionar Todos"
-                                type="object"
-                                class="btn-secondary me-2"/>
-                        <button name="action_deselect_all"
-                                string="Deseleccionar Todos"
-                                type="object"
-                                class="btn-secondary"/>
-                    </div>
-
+                <sheet>
+                    <!-- Formato de Reporte -->
                     <group>
-                        <field name="available_attachment_ids" invisible="1"/>
-                        <field name="attachment_ids"
-                            string="Adjuntos a incluir en el reporte"
-                            widget="many2many_checkboxes"
-                            domain="[('id', 'in', available_attachment_ids)]"
-                            options="{'no_create': True}"/>
+                        <group string="Formato de Reporte">
+                            <field name="report_type" widget="radio" options="{'horizontal': true}"/>
+                        </group>
+                        <group string="Embarques Incluidos">
+                            <field name="shipment_ids" nolabel="1" readonly="1" widget="many2many_tags" options="{'no_create': True}"/>
+                        </group>
                     </group>
-                </group>
+
+                    <!-- Facturas Seleccionadas -->
+                    <notebook>
+                        <page string="Facturas Seleccionadas" name="invoices">
+                            <field name="invoice_ids" nolabel="1" readonly="1">
+                                <list>
+                                    <field name="mrdc_shipment_id" string="Embarque"/>
+                                    <field name="name" string="Factura"/>
+                                    <field name="partner_id" string="Cliente"/>
+                                    <field name="invoice_date" string="Fecha"/>
+                                    <field name="amount_total" string="Total" sum="Total"/>
+                                    <field name="currency_id" string="Mon."/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <page string="Adjuntos" name="attachments" invisible="report_type == 'assukargo'">
+                            <div class="mb-3">
+                                <button name="action_select_all"
+                                        string="Seleccionar Todos"
+                                        type="object"
+                                        class="btn-secondary me-2"
+                                        icon="fa-check-square-o"/>
+                                <button name="action_deselect_all"
+                                        string="Deseleccionar Todos"
+                                        type="object"
+                                        class="btn-secondary"
+                                        icon="fa-square-o"/>
+                            </div>
+
+                            <field name="available_attachment_ids" invisible="1"/>
+                            <field name="attachment_ids" invisible="1"/>
+                            <field name="attachment_line_ids" nolabel="1">
+                                <list editable="bottom" default_order="sequence">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="include" widget="boolean_toggle" string="Incluir"/>
+                                    <field name="shipment_name" readonly="1" string="Embarque"/>
+                                    <field name="origin_type" readonly="1" string="Tipo"/>
+                                    <field name="origin_name" readonly="1" string="Registro"/>
+                                    <field name="name" readonly="1" string="Archivo"/>
+                                    <field name="mimetype" readonly="1" optional="hide" string="Formato"/>
+                                    <field name="attachment_id" column_invisible="1"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+
+                    <!-- Mensaje para Assukargo -->
+                    <group invisible="report_type != 'assukargo'">
+                        <div class="alert alert-info" role="alert">
+                            <i class="fa fa-info-circle"/> <strong>Formato Assukargo:</strong> Este formato no incluye documentos adjuntos ni la columna Referencia 3.
+                        </div>
+                    </group>
+                </sheet>
 
                 <footer>
                     <button name="action_print_report"
                             string="Generar Reporte"
                             type="object"
-                            class="btn-primary"/>
+                            class="btn-primary"
+                            icon="fa-print"/>
                     <button string="Cancelar" class="btn-secondary" special="cancel"/>
                 </footer>
             </form>

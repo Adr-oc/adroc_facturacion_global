@@ -4,9 +4,82 @@ from odoo import models, fields, api, _
 from odoo.exceptions import UserError
 
 
+class LiquidacionGastosWizardAttachmentLine(models.TransientModel):
+    _name = 'liquidacion.gastos.wizard.attachment.line'
+    _description = 'Línea de adjunto para wizard de liquidación'
+    _order = 'sequence, id'
+
+    wizard_id = fields.Many2one(
+        'liquidacion.gastos.wizard',
+        string='Wizard',
+        required=True,
+        ondelete='cascade',
+    )
+    attachment_id = fields.Many2one(
+        'ir.attachment',
+        string='Adjunto',
+        required=True,
+        ondelete='cascade',
+    )
+    sequence = fields.Integer(string='Secuencia', default=10)
+    name = fields.Char(related='attachment_id.name', string='Nombre')
+    mimetype = fields.Char(related='attachment_id.mimetype', string='Tipo')
+    file_size = fields.Integer(related='attachment_id.file_size', string='Tamaño')
+    include = fields.Boolean(string='Incluir', default=True)
+
+    # Campos para mostrar origen del adjunto
+    origin_type = fields.Char(string='Tipo', compute='_compute_origin_info')
+    origin_name = fields.Char(string='Registro', compute='_compute_origin_info')
+    shipment_name = fields.Char(string='Embarque', compute='_compute_origin_info')
+
+    @api.depends('attachment_id')
+    def _compute_origin_info(self):
+        for line in self:
+            att = line.attachment_id
+            origin_type = ''
+            origin_name = ''
+            shipment_name = ''
+
+            if att.res_model == 'mrdc.shipment':
+                origin_type = 'Embarque'
+                shipment = self.env['mrdc.shipment'].browse(att.res_id)
+                if shipment.exists():
+                    origin_name = shipment.name or ''
+                    shipment_name = shipment.name or ''
+
+            elif att.res_model == 'account.move':
+                origin_type = 'Factura'
+                invoice = self.env['account.move'].browse(att.res_id)
+                if invoice.exists():
+                    origin_name = invoice.name or ''
+                    if invoice.mrdc_shipment_id:
+                        shipment_name = invoice.mrdc_shipment_id.name or ''
+
+            elif att.res_model == 'mrdc.external.account':
+                origin_type = 'Cuenta Ajena'
+                external = self.env['mrdc.external.account'].browse(att.res_id)
+                if external.exists():
+                    origin_name = external.name or ''
+                    if hasattr(external, 'shipment_id') and external.shipment_id:
+                        shipment_name = external.shipment_id.name or ''
+
+            else:
+                origin_type = att.res_model or 'Otro'
+                origin_name = str(att.res_id) if att.res_id else ''
+
+            line.origin_type = origin_type
+            line.origin_name = origin_name
+            line.shipment_name = shipment_name
+
+
 class LiquidacionGastosWizard(models.TransientModel):
     _name = 'liquidacion.gastos.wizard'
     _description = 'Wizard para seleccionar adjuntos de Liquidación de Gastos'
+
+    report_type = fields.Selection([
+        ('normal', 'Normal'),
+        ('assukargo', 'Assukargo'),
+    ], string='Formato de Reporte', default='normal', required=True)
 
     invoice_ids = fields.Many2many(
         'account.move',
@@ -26,12 +99,17 @@ class LiquidacionGastosWizard(models.TransientModel):
         store=True,
     )
 
+    attachment_line_ids = fields.One2many(
+        'liquidacion.gastos.wizard.attachment.line',
+        'wizard_id',
+        string='Adjuntos',
+    )
+
+    # Campo legacy para compatibilidad (computado desde las líneas)
     attachment_ids = fields.Many2many(
         'ir.attachment',
-        'liquidacion_gastos_wizard_attachment_rel',
-        'wizard_id',
-        'attachment_id',
-        string='Adjuntos a incluir',
+        string='Adjuntos seleccionados',
+        compute='_compute_attachment_ids',
     )
 
     available_attachment_ids = fields.Many2many(
@@ -42,6 +120,13 @@ class LiquidacionGastosWizard(models.TransientModel):
         string='Adjuntos disponibles',
         compute='_compute_available_attachments',
     )
+
+    @api.depends('attachment_line_ids', 'attachment_line_ids.include')
+    def _compute_attachment_ids(self):
+        for wizard in self:
+            wizard.attachment_ids = wizard.attachment_line_ids.filtered(
+                lambda l: l.include
+            ).mapped('attachment_id')
 
     @api.depends('invoice_ids')
     def _compute_shipments(self):
@@ -88,7 +173,7 @@ class LiquidacionGastosWizard(models.TransientModel):
 
         res['invoice_ids'] = [(6, 0, customer_invoices.ids)]
 
-        # Pre-seleccionar todos los adjuntos disponibles
+        # Obtener todos los adjuntos disponibles
         Attachment = self.env['ir.attachment']
         shipments = customer_invoices.mapped('mrdc_shipment_id').filtered(lambda s: s)
 
@@ -105,8 +190,17 @@ class LiquidacionGastosWizard(models.TransientModel):
         ])
 
         all_attachments = shipment_attachments | invoice_attachments
+
+        # Crear líneas de adjuntos con secuencia
         if all_attachments:
-            res['attachment_ids'] = [(6, 0, all_attachments.ids)]
+            attachment_lines = []
+            for seq, attachment in enumerate(all_attachments, start=10):
+                attachment_lines.append((0, 0, {
+                    'attachment_id': attachment.id,
+                    'sequence': seq,
+                    'include': True,
+                }))
+            res['attachment_line_ids'] = attachment_lines
 
         return res
 
@@ -114,14 +208,27 @@ class LiquidacionGastosWizard(models.TransientModel):
         """Genera el reporte de liquidación de gastos con los adjuntos seleccionados."""
         self.ensure_one()
 
+        # Assukargo no incluye adjuntos
+        if self.report_type == 'assukargo':
+            ordered_attachment_ids = []
+        else:
+            # Obtener IDs de adjuntos en orden
+            ordered_attachment_ids = self.attachment_line_ids.filtered(
+                lambda l: l.include
+            ).sorted('sequence').mapped('attachment_id').ids
+
         return self.env.ref(
             'adroc_facturacion_global.action_report_liquidacion_gastos'
-        ).report_action(self.invoice_ids, data={'wizard_id': self.id})
+        ).report_action(self.invoice_ids, data={
+            'wizard_id': self.id,
+            'report_type': self.report_type,
+            'ordered_attachment_ids': ordered_attachment_ids,
+        })
 
     def action_select_all(self):
-        """Selecciona todos los adjuntos disponibles."""
+        """Selecciona todos los adjuntos."""
         self.ensure_one()
-        self.attachment_ids = self.available_attachment_ids
+        self.attachment_line_ids.write({'include': True})
         return {
             'type': 'ir.actions.act_window',
             'res_model': 'liquidacion.gastos.wizard',
@@ -133,7 +240,7 @@ class LiquidacionGastosWizard(models.TransientModel):
     def action_deselect_all(self):
         """Deselecciona todos los adjuntos."""
         self.ensure_one()
-        self.attachment_ids = [(5, 0, 0)]
+        self.attachment_line_ids.write({'include': False})
         return {
             'type': 'ir.actions.act_window',
             'res_model': 'liquidacion.gastos.wizard',

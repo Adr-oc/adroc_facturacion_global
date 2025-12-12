@@ -15,7 +15,7 @@
         <field name="dpi">96</field>
     </record>
 
-    <!-- Report Action -->
+    <!-- Report Action (sin binding directo, se accede desde el wizard) -->
     <record id="action_report_facturas_entregadas" model="ir.actions.report">
         <field name="name">Facturas por Enviar</field>
         <field name="model">account.move</field>
@@ -23,8 +23,6 @@
         <field name="report_name">adroc_facturacion_global.report_facturas_entregadas</field>
         <field name="report_file">adroc_facturacion_global.report_facturas_entregadas</field>
         <field name="print_report_name">'Facturas_por_Enviar_%s' % (object.partner_id.name or 'Reporte')</field>
-        <field name="binding_model_id" ref="account.model_account_move"/>
-        <field name="binding_type">report</field>
         <field name="paperformat_id" ref="paperformat_facturas_entregadas_landscape"/>
     </record>
 </odoo>

@@ -120,7 +120,7 @@
                                         <th style="width: 8%;">No. Fact CA</th>
                                         <th style="width: 9%;">Ref 1</th>
                                         <th style="width: 9%;">Ref 2</th>
-                                        <th style="width: 9%;">Ref 3</th>
+                                        <th t-if="report_type != 'assukargo'" style="width: 9%;">Ref 3</th>
                                         <th style="width: 9%;">DUCA</th>
                                         <th style="width: 9%;">BL</th>
                                         <th style="width: 10%;">Embarque</th>
@@ -146,7 +146,7 @@
                                             </td>
                                             <td><t t-esc="inv.referencia_1 or inv.mrdc_shipment_id.ref_1 or ''"/></td>
                                             <td><t t-esc="inv.referencia_2 or inv.mrdc_shipment_id.ref_2 or ''"/></td>
-                                            <td><t t-esc="inv.referencia_3 or inv.mrdc_shipment_id.ref_3 or ''"/></td>
+                                            <td t-if="report_type != 'assukargo'"><t t-esc="inv.referencia_3 or inv.mrdc_shipment_id.ref_3 or ''"/></td>
                                             <td><t t-esc="inv.duca or inv.mrdc_shipment_id.customs_declaration_number or ''"/></td>
                                             <td><t t-esc="inv.bl or inv.mrdc_shipment_id.bl_awb_number_manual or ''"/></td>
                                             <td><t t-esc="inv.mrdc_shipment_id.name or inv.embarque_id.name or ''"/></td>

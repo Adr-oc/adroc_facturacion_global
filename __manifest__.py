@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Adroc Facturación Global',
-    'version': '19.0.1.0.4',
+    'version': '19.0.1.0.5',
     'category': 'Accounting',
     'summary': 'Reportes y funcionalidades globales de facturación',
     'description': """
@@ -23,6 +23,7 @@
         'security/ir.model.access.csv',
         'views/account_move_views.xml',
         'wizards/liquidacion_gastos_wizard_views.xml',
+        'wizards/facturas_entregadas_wizard_views.xml',
         'report/facturas_entregadas_report.xml',
         'report/facturas_entregadas_template.xml',
         'report/liquidacion_gastos_report.xml',

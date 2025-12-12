@@ -28,10 +28,19 @@ class LiquidacionGastosReport(models.AbstractModel):
     @api.model
     def _get_report_values(self, docids, data=None):
         # Si viene de wizard, usar los datos del wizard
+        report_type = 'normal'
+        ordered_attachment_ids = []
         if data and data.get('wizard_id'):
             wizard = self.env['liquidacion.gastos.wizard'].browse(data['wizard_id'])
             customer_invoices = wizard.invoice_ids
-            selected_attachments = wizard.attachment_ids
+            report_type = data.get('report_type', 'normal')
+            # Usar IDs ordenados si están disponibles
+            ordered_attachment_ids = data.get('ordered_attachment_ids')
+            if ordered_attachment_ids is not None:
+                # Usar lista ordenada (puede ser vacía para Assukargo)
+                selected_attachments = self.env['ir.attachment'].browse(ordered_attachment_ids)
+            else:
+                selected_attachments = wizard.attachment_ids
         else:
             invoices = self.env['account.move'].browse(docids)
             customer_invoices = invoices.filtered(
@@ -68,6 +77,7 @@ class LiquidacionGastosReport(models.AbstractModel):
             'attachments': attachments,
             'grand_totals': grand_totals,
             'today': fields.Date.today(),
+            'report_type': report_type,
         }
 
     def _get_invoices_by_company(self, invoices):
@@ -123,15 +133,20 @@ class LiquidacionGastosReport(models.AbstractModel):
         return self._process_selected_attachments(all_attachments)
 
     def _process_selected_attachments(self, all_attachments):
-        """Procesa y separa los adjuntos por tipo."""
-        # Separar por tipo
-        image_attachments = all_attachments.filtered(
-            lambda a: a.mimetype and a.mimetype.startswith('image/')
-        )
-        pdf_attachments = all_attachments.filtered(
-            lambda a: a.mimetype == 'application/pdf'
-        )
-        other_attachments = all_attachments - image_attachments - pdf_attachments
+        """Procesa y separa los adjuntos por tipo, preservando el orden original."""
+        # Preservar el orden original usando listas
+        ordered_ids = all_attachments.ids
+
+        # Separar por tipo manteniendo el orden
+        image_ids = [att.id for att in all_attachments if att.mimetype and att.mimetype.startswith('image/')]
+        pdf_ids = [att.id for att in all_attachments if att.mimetype == 'application/pdf']
+        other_ids = [att.id for att in all_attachments if att.id not in image_ids and att.id not in pdf_ids]
+
+        # Crear recordsets preservando el orden
+        Attachment = self.env['ir.attachment']
+        image_attachments = Attachment.browse(image_ids)
+        pdf_attachments = Attachment.browse(pdf_ids)
+        other_attachments = Attachment.browse(other_ids)
 
         return {
             'images': image_attachments,

@@ -55,7 +55,14 @@ class IrActionsReportLiquidacion(models.Model):
         if not wizard.exists():
             return pdf_content, content_type
 
-        attachments = wizard.attachment_ids
+        # Usar los IDs ordenados pasados desde el wizard (vacío para Assukargo)
+        ordered_attachment_ids = data.get('ordered_attachment_ids')
+        if ordered_attachment_ids is not None:
+            # Usar la lista ordenada (puede ser vacía para Assukargo)
+            attachments = self.env['ir.attachment'].browse(ordered_attachment_ids)
+        else:
+            attachments = wizard.attachment_ids
+
         if not attachments:
             return pdf_content, content_type
 

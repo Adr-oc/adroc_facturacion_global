@@ -20,8 +20,13 @@ class FacturasEntregadasReport(models.AbstractModel):
         if not customer_invoices:
             raise UserError(_('Debe seleccionar facturas de cliente.'))
 
+        # Obtener direcciones personalizadas del wizard si existen
+        custom_addresses = {}
+        if data and data.get('custom_addresses'):
+            custom_addresses = data.get('custom_addresses', {})
+
         # Agrupar por partner
-        partners_data = self._get_invoices_by_partner(customer_invoices)
+        partners_data = self._get_invoices_by_partner(customer_invoices, custom_addresses)
 
         return {
             'doc_ids': docids,
@@ -31,9 +36,10 @@ class FacturasEntregadasReport(models.AbstractModel):
             'company': self.env.company,
         }
 
-    def _get_invoices_by_partner(self, invoices):
+    def _get_invoices_by_partner(self, invoices, custom_addresses=None):
         """Agrupa las facturas por partner y luego por embarque."""
         partners_data = []
+        custom_addresses = custom_addresses or {}
 
         # Agrupar por partner
         partner_ids = invoices.mapped('partner_id')
@@ -43,11 +49,15 @@ class FacturasEntregadasReport(models.AbstractModel):
             # Obtener lista de empresas únicas para colores
             companies = partner_invoices.mapped('company_id').sorted(key=lambda c: c.name or '')
 
+            # Obtener dirección personalizada o usar la del partner
+            custom_address = custom_addresses.get(partner.id, '')
+
             partners_data.append({
                 'partner': partner,
                 'companies': companies,
                 'groups': self._get_invoices_grouped(partner_invoices),
                 'totals': self._get_totals(partner_invoices),
+                'custom_address': custom_address,
             })
 
         return partners_data
@@ -59,7 +69,7 @@ class FacturasEntregadasReport(models.AbstractModel):
         for invoice in invoices.sorted(key=lambda r: (
             r.mrdc_shipment_id.name or '',
             r.date_sent or fields.Date.today(),
-            r.name
+            r.name or ''
         )):
             shipment = invoice.mrdc_shipment_id
             shipment_key = shipment.id if shipment else 0

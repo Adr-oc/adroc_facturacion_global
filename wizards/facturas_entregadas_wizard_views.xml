@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Vista form del wizard -->
+    <record id="view_facturas_entregadas_wizard_form" model="ir.ui.view">
+        <field name="name">facturas.entregadas.wizard.form</field>
+        <field name="model">facturas.entregadas.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Facturas por Enviar">
+                <group>
+                    <group>
+                        <field name="invoice_ids" invisible="1"/>
+                    </group>
+                </group>
+                <separator string="Clientes y Direcciones de Entrega"/>
+                <field name="line_ids" nolabel="1">
+                    <list editable="bottom" create="false" delete="false">
+                        <field name="partner_id" readonly="1"/>
+                        <field name="invoice_count" readonly="1"/>
+                        <field name="total_amount" readonly="1" widget="monetary"/>
+                        <field name="address"/>
+                    </list>
+                </field>
+                <footer>
+                    <button name="action_print_report" string="Imprimir Reporte" type="object" class="btn-primary"/>
+                    <button string="Cancelar" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Acción del wizard -->
+    <record id="action_facturas_entregadas_wizard" model="ir.actions.act_window">
+        <field name="name">Facturas por Enviar</field>
+        <field name="res_model">facturas.entregadas.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="binding_model_id" ref="account.model_account_move"/>
+        <field name="binding_view_types">list</field>
+    </record>
+</odoo>
